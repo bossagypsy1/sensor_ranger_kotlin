@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.location.Location
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
@@ -42,6 +41,7 @@ class SensorRangerService : Service() {
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             sensorCollector.latestLocation = result.lastLocation
+            LogManager.log("LOC", "lat=${result.lastLocation?.latitude} lon=${result.lastLocation?.longitude}")
         }
     }
 
@@ -51,9 +51,11 @@ class SensorRangerService : Service() {
         sensorCollector = SensorCollector(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         createNotificationChannel()
+        LogManager.log("SERVICE", "onCreate")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        LogManager.log("SERVICE", "onStartCommand action=${intent?.action}")
         when (intent?.action) {
             ACTION_START -> startPushing()
             ACTION_STOP -> {
@@ -68,15 +70,21 @@ class SensorRangerService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        LogManager.log("SERVICE", "onDestroy")
         stopPushing()
         serviceScope.cancel()
     }
 
     private fun startPushing() {
-        ServiceCompat.startForeground(
-            this, NOTIF_ID, buildNotification(),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-        )
+        try {
+            ServiceCompat.startForeground(
+                this, NOTIF_ID, buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            )
+            LogManager.log("SERVICE", "Foreground started")
+        } catch (e: Exception) {
+            LogManager.log("ERROR", "startForeground failed: ${e.message}")
+        }
         sensorCollector.start()
         startLocationUpdates()
         scheduleLoop()
@@ -87,13 +95,14 @@ class SensorRangerService : Service() {
         pushJob = null
         sensorCollector.stop()
         try { fusedLocationClient.removeLocationUpdates(locationCallback) } catch (_: Exception) {}
+        LogManager.log("SERVICE", "Stopped")
     }
 
     private fun scheduleLoop() {
         pushJob?.cancel()
         val intervalMs = prefs.frequencyMs
+        LogManager.log("SERVICE", "Scheduling pushes every ${intervalMs / 1000}s")
         pushJob = serviceScope.launch {
-            // Immediate first push
             performPush()
             while (isActive) {
                 delay(intervalMs)
@@ -103,40 +112,53 @@ class SensorRangerService : Service() {
     }
 
     private suspend fun performPush() {
-        val sessionId = prefs.sessionId
-        if (sessionId.isEmpty()) return
+        try {
+            val sessionId = prefs.sessionId
+            if (sessionId.isEmpty()) {
+                LogManager.log("PUSH", "Skipped — no session")
+                return
+            }
 
-        val deviceId = prefs.deviceId
-        val messageId = prefs.nextMessageId()
-        val payload = sensorCollector.buildPayload(prefs)
+            val deviceId = prefs.deviceId
+            val messageId = prefs.nextMessageId()
+            val payload = sensorCollector.buildPayload(prefs)
 
-        if (payload.length() == 0) return
+            LogManager.log("PUSH", "msg=$messageId sensors=${payload.length()}")
 
-        val body = JSONObject().apply {
-            put("deviceId", deviceId)
-            put("messageId", messageId)
-            put("sessionId", sessionId)
-            put("payload", payload)
-        }.toString()
+            if (payload.length() == 0) {
+                LogManager.log("PUSH", "Skipped — no sensor data")
+                return
+            }
 
-        val token = if (prefs.useBearerToken && prefs.apiToken.isNotEmpty()) prefs.apiToken else null
-        val result = ApiClient.post(prefs.apiUrl, body, token)
+            val body = JSONObject().apply {
+                put("deviceId", deviceId)
+                put("messageId", messageId)
+                put("sessionId", sessionId)
+                put("payload", payload)
+            }.toString()
 
-        val resultStr = if (result.success) "HTTP ${result.status}"
-                        else result.error ?: "HTTP ${result.status}"
-        val nowStr = isoFormat.format(Date())
+            val token = if (prefs.useBearerToken && prefs.apiToken.isNotEmpty()) prefs.apiToken else null
+            val result = ApiClient.post(prefs.apiUrl, body, token)
 
-        prefs.lastPush = nowStr
-        prefs.lastResult = resultStr
-        if (result.success) prefs.retryCount = 0
-        else prefs.retryCount = prefs.retryCount + 1
+            val resultStr = if (result.success) "HTTP ${result.status}"
+                            else result.error ?: "HTTP ${result.status}"
+            val nowStr = isoFormat.format(Date())
 
-        // Broadcast status to activity
-        sendBroadcast(Intent(ACTION_STATUS).apply {
-            putExtra(EXTRA_LAST_RESULT, resultStr)
-            putExtra(EXTRA_LAST_PUSH, nowStr)
-            putExtra(EXTRA_RETRY_COUNT, prefs.retryCount)
-        })
+            LogManager.log("PUSH", "Result: $resultStr")
+
+            prefs.lastPush = nowStr
+            prefs.lastResult = resultStr
+            if (result.success) prefs.retryCount = 0
+            else prefs.retryCount = prefs.retryCount + 1
+
+            sendBroadcast(Intent(ACTION_STATUS).apply {
+                putExtra(EXTRA_LAST_RESULT, resultStr)
+                putExtra(EXTRA_LAST_PUSH, nowStr)
+                putExtra(EXTRA_RETRY_COUNT, prefs.retryCount)
+            })
+        } catch (e: Exception) {
+            LogManager.log("ERROR", "performPush exception: ${e.javaClass.simpleName}: ${e.message}")
+        }
     }
 
     private fun startLocationUpdates() {
@@ -145,7 +167,12 @@ class SensorRangerService : Service() {
                 Priority.PRIORITY_BALANCED_POWER_ACCURACY, 30_000L
             ).setWaitForAccurateLocation(false).build()
             fusedLocationClient.requestLocationUpdates(req, locationCallback, Looper.getMainLooper())
-        } catch (_: SecurityException) {}
+            LogManager.log("LOC", "Location updates started")
+        } catch (e: SecurityException) {
+            LogManager.log("ERROR", "Location permission denied: ${e.message}")
+        } catch (e: Exception) {
+            LogManager.log("ERROR", "Location updates failed: ${e.message}")
+        }
     }
 
     private fun createNotificationChannel() {

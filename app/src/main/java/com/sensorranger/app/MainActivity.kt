@@ -1,6 +1,7 @@
 package com.sensorranger.app
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -51,6 +52,7 @@ class MainActivity : AppCompatActivity() {
             val push = intent.getStringExtra(SensorRangerService.EXTRA_LAST_PUSH) ?: ""
             val retry = intent.getIntExtra(SensorRangerService.EXTRA_RETRY_COUNT, 0)
             updateStatus(push, result, retry)
+            refreshLog()
         }
     }
 
@@ -71,7 +73,9 @@ class MainActivity : AppCompatActivity() {
         setupSensorToggles()
         setupControls()
         setupStatus()
+        setupLog()
         loadStatus()
+        checkForCrash()
         requestPermissions()
     }
 
@@ -81,6 +85,7 @@ class MainActivity : AppCompatActivity() {
             RECEIVER_NOT_EXPORTED)
         loadStatus()
         updatePermissionBadges()
+        refreshLog()
     }
 
     override fun onPause() {
@@ -215,6 +220,7 @@ class MainActivity : AppCompatActivity() {
         prefs.sessionId = "session-${UUID.randomUUID()}-${System.currentTimeMillis()}"
         prefs.running = true
         running = true
+        LogManager.log("UI", "Start Service pressed — interval=${prefs.frequencyMs/1000}s")
         syncControlState()
 
         ContextCompat.startForegroundService(this,
@@ -227,6 +233,7 @@ class MainActivity : AppCompatActivity() {
         prefs.running = false
         prefs.sessionId = ""
         running = false
+        LogManager.log("UI", "Stop Service pressed")
         syncControlState()
 
         startService(Intent(this, SensorRangerService::class.java).apply {
@@ -407,6 +414,32 @@ class MainActivity : AppCompatActivity() {
             badge("Notifications", ContextCompat.checkSelfPermission(
                 this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Log
+    // -------------------------------------------------------------------------
+
+    private fun setupLog() {
+        binding.btnClearLog.setOnClickListener {
+            LogManager.clearLog()
+            refreshLog()
+        }
+    }
+
+    private fun refreshLog() {
+        val text = LogManager.getLog()
+        binding.tvLog.text = if (text.isBlank()) "(no log entries yet)" else text
+    }
+
+    private fun checkForCrash() {
+        val crash = LogManager.getLastCrash() ?: return
+        AlertDialog.Builder(this)
+            .setTitle("App crashed last session")
+            .setMessage(crash)
+            .setPositiveButton("Clear") { _, _ -> LogManager.clearCrash(); refreshLog() }
+            .setNegativeButton("Keep", null)
+            .show()
     }
 
     // -------------------------------------------------------------------------

@@ -38,6 +38,9 @@ jobs:
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug
 
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk SensorRanger-kt-v${{ github.run_number }}.apk
+
       - name: Delete existing latest-build release
         run: gh release delete latest-build --yes --cleanup-tag || true
         env:
@@ -47,11 +50,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-build
-          name: Latest Debug Build
+          name: "Build v${{ github.run_number }}"
           prerelease: true
           body: |
-            Auto-built from commit ${{ github.sha }} on branch `${{ github.ref_name }}`.
-            Download `app-debug.apk` directly below — no unzip needed.
-          files: app/build/outputs/apk/debug/app-debug.apk
+            Build v${{ github.run_number }} — commit ${{ github.sha }} on branch `${{ github.ref_name }}`.
+            Download `SensorRanger-kt-v${{ github.run_number }}.apk` directly below.
+          files: SensorRanger-kt-v${{ github.run_number }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
