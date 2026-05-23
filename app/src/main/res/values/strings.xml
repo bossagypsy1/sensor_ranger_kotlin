@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sensor Ranger</string>
+    <string name="default_api_url">https://remote-sensor-phnx-refactor.vercel.app/api/ingest/mobile_phone</string>
+    <string name="notif_title">Sensor Ranger running</string>
+    <string name="notif_body">Pushing phone sensor data</string>
+    <string name="notif_channel_name">Sensor Ranger</string>
+</resources>

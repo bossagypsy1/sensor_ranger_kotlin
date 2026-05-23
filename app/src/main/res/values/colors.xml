@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0A0A0F</color>
+    <color name="card">#12121A</color>
+    <color name="border">#1E1E2E</color>
+    <color name="accent">#7C83FD</color>
+    <color name="accent_dim">#3D4099</color>
+    <color name="text_primary">#E0E0F0</color>
+    <color name="text_muted">#8888AA</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+    <color name="input_bg">#1A1A26</color>
+    <color name="ic_launcher_background">#0A0A0F</color>
+</resources>
