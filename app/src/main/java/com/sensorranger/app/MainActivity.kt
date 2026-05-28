@@ -62,21 +62,31 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        prefs = PreferencesManager(this)
+            prefs = PreferencesManager(this)
 
-        setupApiSettings()
-        setupDevice()
-        setupFrequency()
-        setupSensorToggles()
-        setupControls()
-        setupStatus()
-        setupLog()
-        loadStatus()
-        checkForCrash()
-        requestPermissions()
+            setupApiSettings()
+            setupDevice()
+            setupFrequency()
+            setupSensorToggles()
+            setupControls()
+            setupStatus()
+            setupLog()
+            loadStatus()
+            checkForCrash()
+            requestPermissions()
+        } catch (e: Exception) {
+            val msg = "${e.javaClass.simpleName}: ${e.message}\n\n${e.stackTraceToString()}"
+            LogManager.saveCrash(msg)
+            AlertDialog.Builder(this)
+                .setTitle("Startup error")
+                .setMessage(msg)
+                .setPositiveButton("OK", null)
+                .show()
+        }
     }
 
     override fun onResume() {

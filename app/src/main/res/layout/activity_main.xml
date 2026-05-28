@@ -165,8 +165,7 @@
                         android:paddingStart="10dp"
                         android:paddingEnd="10dp"
                         android:paddingTop="10dp"
-                        android:paddingBottom="10dp"
-                        android:textColor="@color/text_primary" />
+                        android:paddingBottom="10dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -247,15 +246,25 @@
                         style="@style/SectionTitle" />
 
                     <include layout="@layout/status_row"
-                        android:id="@+id/rowRunning" />
+                        android:id="@+id/rowRunning"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
                     <include layout="@layout/status_row"
-                        android:id="@+id/rowLastPush" />
+                        android:id="@+id/rowLastPush"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
                     <include layout="@layout/status_row"
-                        android:id="@+id/rowLastResult" />
+                        android:id="@+id/rowLastResult"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
                     <include layout="@layout/status_row"
-                        android:id="@+id/rowNextPush" />
+                        android:id="@+id/rowNextPush"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
                     <include layout="@layout/status_row"
-                        android:id="@+id/rowRetryCount" />
+                        android:id="@+id/rowRetryCount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
