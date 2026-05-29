@@ -405,7 +405,7 @@ class MainActivity : AppCompatActivity() {
                 text = label
                 textSize = 11f
                 setTextColor(ContextCompat.getColor(this@MainActivity, if (granted) R.color.accent else R.color.red))
-                setBackgroundColor(ContextCompat.getColor(this@MainActivity, if (granted) R.color.accent_dim else 0x3FF44336.toInt()))
+                setBackgroundColor(if (granted) ContextCompat.getColor(this@MainActivity, R.color.accent_dim) else 0x3FF44336.toInt())
                 setPadding(16, 6, 16, 6)
                 val lp = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
