@@ -59,7 +59,7 @@ class CrashActivity : AppCompatActivity() {
             setTextColor(0xFF8888AA.toInt())
             textSize = 11f
             typeface = android.graphics.Typeface.MONOSPACE
-            isTextSelectable = true
+            setTextIsSelectable(true)
             setPadding(0, 0, 0, 16)
         })
 

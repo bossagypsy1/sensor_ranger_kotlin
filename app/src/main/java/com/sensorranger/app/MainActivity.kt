@@ -79,8 +79,8 @@ class MainActivity : AppCompatActivity() {
             checkForCrash()
             requestPermissions()
         } catch (e: Exception) {
+            LogManager.saveCrash(e)
             val msg = "${e.javaClass.simpleName}: ${e.message}\n\n${e.stackTraceToString()}"
-            LogManager.saveCrash(msg)
             AlertDialog.Builder(this)
                 .setTitle("Startup error")
                 .setMessage(msg)
