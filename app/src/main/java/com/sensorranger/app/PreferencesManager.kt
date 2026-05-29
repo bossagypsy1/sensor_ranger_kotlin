@@ -2,7 +2,6 @@ package com.sensorranger.app
 
 import android.content.Context
 import android.content.SharedPreferences
-import java.util.UUID
 
 class PreferencesManager(context: Context) {
 
@@ -13,13 +12,17 @@ class PreferencesManager(context: Context) {
         const val DEFAULT_API_URL =
             "https://remote-sensor-phnx-refactor.vercel.app/api/ingest/mobile_phone"
 
+        // Fixed device ID — provisioned to match the receiving app.
+        // Change this before building if deploying to a different device.
+        const val DEFAULT_DEVICE_ID = "4df4073a-e032-4333-b542-6cca78d502d5"
+
         val FREQUENCY_OPTIONS = listOf(
-            FrequencyOption("1 minute (testing)", 60_000L),
+            FrequencyOption("1 minute", 60_000L),
             FrequencyOption("5 minutes", 300_000L),
-            FrequencyOption("15 minutes", 900_000L),
+            FrequencyOption("10 minutes", 600_000L),
+            FrequencyOption("30 minutes", 1_800_000L),
             FrequencyOption("1 hour", 3_600_000L),
-            FrequencyOption("6 hours", 21_600_000L),
-            FrequencyOption("12 hours", 43_200_000L),
+            FrequencyOption("8 hours", 28_800_000L),
             FrequencyOption("1 day", 86_400_000L)
         )
 
@@ -44,7 +47,7 @@ class PreferencesManager(context: Context) {
     data class SensorToggle(val key: String, val label: String, val defaultEnabled: Boolean)
 
     var deviceId: String
-        get() = prefs.getString("deviceId", null) ?: UUID.randomUUID().toString().also { deviceId = it }
+        get() = prefs.getString("deviceId", null) ?: DEFAULT_DEVICE_ID.also { deviceId = it }
         set(v) = prefs.edit().putString("deviceId", v).apply()
 
     var apiUrl: String

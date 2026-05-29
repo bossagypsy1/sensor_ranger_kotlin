@@ -139,9 +139,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupFrequency() {
         val options = PreferencesManager.FREQUENCY_OPTIONS
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
-            options.map { it.label }).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val adapter = ArrayAdapter(this, R.layout.spinner_item, options.map { it.label }).apply {
+            setDropDownViewResource(R.layout.spinner_dropdown_item)
         }
         binding.spFrequency.adapter = adapter
 

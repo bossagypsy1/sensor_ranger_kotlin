@@ -123,16 +123,31 @@
                         android:fontFamily="monospace"
                         android:layout_marginBottom="8dp"
                         android:textIsSelectable="true" />
-                    <Button
-                        android:id="@+id/btnCopyDeviceId"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Copy Device ID"
-                        android:textSize="12sp"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        app:strokeColor="@color/border"
-                        android:textColor="@color/accent"
-                        android:layout_marginBottom="10dp" />
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="10dp">
+                        <Button
+                            android:id="@+id/btnCopyDeviceId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Copy"
+                            android:textSize="12sp"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            app:strokeColor="@color/border"
+                            android:textColor="@color/accent"
+                            android:layout_marginEnd="8dp" />
+                        <Button
+                            android:id="@+id/btnEditDeviceId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Edit"
+                            android:textSize="12sp"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            app:strokeColor="@color/border"
+                            android:textColor="@color/text_muted" />
+                    </LinearLayout>
                     <LinearLayout
                         android:id="@+id/llPermissions"
                         android:layout_width="match_parent"
