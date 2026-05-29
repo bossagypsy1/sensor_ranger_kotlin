@@ -435,6 +435,30 @@ class MainActivity : AppCompatActivity() {
             LogManager.clearLog()
             refreshLog()
         }
+        binding.btnShareLog.setOnClickListener {
+            shareFile(LogManager.logFile(), "Sensor Ranger log")
+        }
+    }
+
+    private fun shareFile(file: java.io.File, subject: String) {
+        try {
+            if (!file.exists()) {
+                Toast.makeText(this, "Nothing to share yet", Toast.LENGTH_SHORT).show()
+                return
+            }
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                this, "${packageName}.provider", file
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Share log"))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Share failed: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun refreshLog() {
@@ -443,12 +467,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkForCrash() {
+        if (!LogManager.hasCrash()) return
         val crash = LogManager.getLastCrash() ?: return
         AlertDialog.Builder(this)
-            .setTitle("App crashed last session")
-            .setMessage(crash)
-            .setPositiveButton("Clear") { _, _ -> LogManager.clearCrash(); refreshLog() }
-            .setNegativeButton("Keep", null)
+            .setTitle("⚠️ App crashed last session")
+            .setMessage(crash.take(800) + if (crash.length > 800) "\n…(truncated)" else "")
+            .setPositiveButton("Share log") { _, _ -> shareFile(LogManager.crashFile(), "Sensor Ranger crash") }
+            .setNeutralButton("Clear") { _, _ -> LogManager.clearCrash(); refreshLog() }
+            .setNegativeButton("Dismiss", null)
             .show()
     }
 

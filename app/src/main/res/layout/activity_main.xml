@@ -292,6 +292,18 @@
                             style="@style/SectionTitle"
                             android:paddingBottom="0dp" />
                         <Button
+                            android:id="@+id/btnShareLog"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Share"
+                            android:textSize="11sp"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            app:strokeColor="@color/border"
+                            android:textColor="@color/text_muted"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:layout_marginEnd="6dp" />
+                        <Button
                             android:id="@+id/btnClearLog"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
