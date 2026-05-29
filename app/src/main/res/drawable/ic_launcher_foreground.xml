@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Foreground layer for the adaptive icon.
+    The adaptive icon canvas is 108dp x 108dp; Android's mask clips roughly the
+    outer 18dp on each edge (the "safe zone" is the central 72dp).
+    The 22dp inset here keeps the logo well inside that zone on all sides.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/logo"
+        android:top="22dp"
+        android:bottom="22dp"
+        android:left="22dp"
+        android:right="22dp" />
+</layer-list>
