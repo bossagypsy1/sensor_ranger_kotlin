@@ -24,6 +24,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.gms.location.LocationServices
 import com.sensorranger.app.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
@@ -269,8 +270,30 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val collector = SensorCollector(this@MainActivity)
             collector.start()
+
+            // Seed last-known location so the test payload includes GPS
+            if (hasLocationPermission()) {
+                try {
+                    val locDeferred = CompletableDeferred<android.location.Location?>()
+                    val fusedClient = LocationServices.getFusedLocationProviderClient(this@MainActivity)
+                    fusedClient.lastLocation
+                        .addOnSuccessListener { loc -> locDeferred.complete(loc) }
+                        .addOnFailureListener { locDeferred.complete(null) }
+                    val location = withTimeoutOrNull(2_000L) { locDeferred.await() }
+                    if (location != null) {
+                        collector.latestLocation = location
+                        LogManager.log("TEST", "Location seeded: lat=${location.latitude} lon=${location.longitude}")
+                    } else {
+                        LogManager.log("TEST", "No cached location available for test push")
+                    }
+                } catch (e: Exception) {
+                    LogManager.log("TEST", "Location fetch failed: ${e.message}")
+                }
+            }
+
             delay(800) // Brief delay for first sensor readings
             val payload = collector.buildPayload(prefs)
+            LogManager.log("TEST", "Payload has ${payload.length()} sensors")
             collector.stop()
 
             if (!prefs.running) prefs.sessionId = ""

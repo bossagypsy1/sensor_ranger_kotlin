@@ -103,6 +103,8 @@ class SensorRangerService : Service() {
         val intervalMs = prefs.frequencyMs
         LogManager.log("SERVICE", "Scheduling pushes every ${intervalMs / 1000}s")
         pushJob = serviceScope.launch {
+            // Wait briefly so lastLocation callback and sensor readings have time to arrive
+            delay(2_000L)
             performPush()
             while (isActive) {
                 delay(intervalMs)
@@ -163,9 +165,22 @@ class SensorRangerService : Service() {
 
     private fun startLocationUpdates() {
         try {
+            // Seed latestLocation immediately with the last known cached fix
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    sensorCollector.latestLocation = location
+                    LogManager.log("LOC", "Last known: lat=${location.latitude} lon=${location.longitude}")
+                } else {
+                    LogManager.log("LOC", "No last known location cached")
+                }
+            }
+
+            // Then start continuous updates (every 10s for fresh fixes)
             val req = LocationRequest.Builder(
-                Priority.PRIORITY_BALANCED_POWER_ACCURACY, 30_000L
-            ).setWaitForAccurateLocation(false).build()
+                Priority.PRIORITY_HIGH_ACCURACY, 10_000L
+            ).setWaitForAccurateLocation(false)
+             .setMinUpdateIntervalMillis(5_000L)
+             .build()
             fusedLocationClient.requestLocationUpdates(req, locationCallback, Looper.getMainLooper())
             LogManager.log("LOC", "Location updates started")
         } catch (e: SecurityException) {
