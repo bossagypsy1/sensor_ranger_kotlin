@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Lets us prompt the user to exempt the app from battery optimisation,
+         which stops OEM battery killers from terminating the foreground service. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:name=".SensorRangerApp"
@@ -32,9 +35,12 @@
             </intent-filter>
         </activity>
 
+        <!-- stopWithTask="false" keeps the service alive when the user swipes
+             the app away from the recents screen. -->
         <service
             android:name=".SensorRangerService"
             android:foregroundServiceType="location"
+            android:stopWithTask="false"
             android:exported="false" />
 
         <activity
@@ -49,6 +55,11 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- Receives AlarmManager broadcasts to trigger a push while in Doze mode. -->
+        <receiver
+            android:name=".PushAlarmReceiver"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

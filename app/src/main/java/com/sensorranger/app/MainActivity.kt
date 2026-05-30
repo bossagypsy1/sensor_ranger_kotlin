@@ -10,10 +10,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.TypedValue
@@ -227,6 +230,10 @@ class MainActivity : AppCompatActivity() {
             requestPermissions()
             return
         }
+        // Prompt once to exempt from battery optimisation — the single most effective
+        // fix for OEM battery killers stopping the foreground service overnight.
+        promptBatteryOptimisationExemption()
+
         prefs.sessionId = "session-${UUID.randomUUID()}-${System.currentTimeMillis()}"
         prefs.running = true
         running = true
@@ -237,6 +244,32 @@ class MainActivity : AppCompatActivity() {
             Intent(this, SensorRangerService::class.java).apply {
                 action = SensorRangerService.ACTION_START
             })
+    }
+
+    private fun promptBatteryOptimisationExemption() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+        val pm = getSystemService(PowerManager::class.java)
+        if (pm.isIgnoringBatteryOptimizations(packageName)) return   // already exempted
+        AlertDialog.Builder(this)
+            .setTitle("Keep service running overnight?")
+            .setMessage(
+                "Android's battery optimisation can stop the push service after a few hours.\n\n" +
+                "Tap OK to disable battery optimisation for Sensor Ranger — this is the most " +
+                "reliable way to ensure hourly pushes continue while the phone is idle."
+            )
+            .setPositiveButton("OK") { _, _ ->
+                try {
+                    startActivity(
+                        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                            data = Uri.parse("package:$packageName")
+                        }
+                    )
+                } catch (e: Exception) {
+                    LogManager.log("PERM", "Battery opt intent failed: ${e.message}")
+                }
+            }
+            .setNegativeButton("Skip", null)
+            .show()
     }
 
     private fun stopService() {
