@@ -58,6 +58,13 @@ class SensorRangerService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         LogManager.log("SERVICE", "onStartCommand action=${intent?.action}")
+
+        // Android requires startForeground() within 5s of startForegroundService().
+        // Call it immediately — before any async work — so the deadline is always met.
+        if (intent?.action != ACTION_STOP) {
+            callStartForeground()
+        }
+
         when (intent?.action) {
             ACTION_START -> startPushing()
 
@@ -68,8 +75,8 @@ class SensorRangerService : Service() {
 
             ACTION_PUSH -> {
                 // Alarm fired. If the service was killed and restarted by the alarm,
-                // isPushing will be false — call startPushing() which handles the first push.
-                // If we're already running normally, just push and reschedule.
+                // isPushing will be false — call startPushing() which handles setup.
+                // If already running normally, just push and reschedule.
                 if (prefs.running) {
                     if (!isPushing) {
                         LogManager.log("SERVICE", "Alarm woke killed service — restarting")
@@ -97,6 +104,30 @@ class SensorRangerService : Service() {
         return START_STICKY
     }
 
+    /**
+     * Calls startForeground() to satisfy Android's 5-second ANR deadline.
+     * Falls back without the location type if the permission is denied, rather than
+     * catching the error silently and letting the timer expire (which causes the crash).
+     */
+    private fun callStartForeground() {
+        try {
+            ServiceCompat.startForeground(
+                this, NOTIF_ID, buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            )
+            LogManager.log("SERVICE", "startForeground OK (location type)")
+        } catch (e: Exception) {
+            LogManager.log("ERROR", "startForeground (location) failed: ${e.message} — retrying without type")
+            try {
+                startForeground(NOTIF_ID, buildNotification())
+                LogManager.log("SERVICE", "startForeground OK (no type fallback)")
+            } catch (e2: Exception) {
+                LogManager.log("ERROR", "startForeground failed completely: ${e2.message}")
+                stopSelf()
+            }
+        }
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
@@ -111,15 +142,7 @@ class SensorRangerService : Service() {
     // -------------------------------------------------------------------------
 
     private fun startPushing() {
-        try {
-            ServiceCompat.startForeground(
-                this, NOTIF_ID, buildNotification(),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-            )
-            LogManager.log("SERVICE", "Foreground started")
-        } catch (e: Exception) {
-            LogManager.log("ERROR", "startForeground failed: ${e.message}")
-        }
+        // startForeground() is already called in onStartCommand via callStartForeground().
         isPushing = true
         sensorCollector.start()
         startLocationUpdates()
