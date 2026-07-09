@@ -35,20 +35,24 @@ jobs:
           gradle wrapper --gradle-version 8.6 --distribution-type bin
           chmod +x gradlew
 
+      # Pass build number as a Gradle project property (-P) so it is available
+      # regardless of when the Gradle daemon was started.
       - name: Build debug APK
-        run: ./gradlew :app:assembleDebug
-        env:
-          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./gradlew :app:assembleDebug -PbuildNumber=${{ github.run_number }}
 
       - name: Rename APK
         run: cp app/build/outputs/apk/debug/app-debug.apk SensorRanger-kt-v${{ github.run_number }}.apk
 
+      # Release steps only run on main — the workflow triggers on all branches
+      # for CI, but publishing to GitHub Releases only makes sense from main.
       - name: Delete existing latest-build release
+        if: github.ref == 'refs/heads/main'
         run: gh release delete latest-build --yes --cleanup-tag || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish APK as GitHub Release
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-build

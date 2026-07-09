@@ -11,8 +11,8 @@ android {
         applicationId "com.sensorranger.app"
         minSdk 26
         targetSdk 34
-        versionCode (System.getenv("BUILD_NUMBER") ?: "1").toInteger()
-        versionName "1.0." + (System.getenv("BUILD_NUMBER") ?: "0")
+        versionCode (findProperty("buildNumber") ?: "1").toString().toInteger()
+        versionName "1.0." + (findProperty("buildNumber") ?: "0")
     }
 
     buildTypes {
