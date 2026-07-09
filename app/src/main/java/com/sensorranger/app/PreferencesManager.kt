@@ -90,6 +90,10 @@ class PreferencesManager(context: Context) {
         get() = prefs.getInt("retryCount", 0)
         set(v) = prefs.edit().putInt("retryCount", v).apply()
 
+    var batteryOptPromptShown: Boolean
+        get() = prefs.getBoolean("batteryOptPromptShown", false)
+        set(v) = prefs.edit().putBoolean("batteryOptPromptShown", v).apply()
+
     fun isSensorEnabled(key: String): Boolean {
         val default = SENSOR_KEYS.find { it.key == key }?.defaultEnabled ?: false
         return prefs.getBoolean("sensor_$key", default)

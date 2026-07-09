@@ -28,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.gms.location.LocationServices
+import androidx.lifecycle.lifecycleScope
 import com.sensorranger.app.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
@@ -250,6 +251,8 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
         val pm = getSystemService(PowerManager::class.java)
         if (pm.isIgnoringBatteryOptimizations(packageName)) return   // already exempted
+        if (prefs.batteryOptPromptShown) return                      // user already saw this
+        prefs.batteryOptPromptShown = true
         AlertDialog.Builder(this)
             .setTitle("Keep service running overnight?")
             .setMessage(
@@ -300,7 +303,7 @@ class MainActivity : AppCompatActivity() {
             prefs.sessionId = "test-session-${UUID.randomUUID()}-${System.currentTimeMillis()}"
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val collector = SensorCollector(this@MainActivity)
             collector.start()
 
