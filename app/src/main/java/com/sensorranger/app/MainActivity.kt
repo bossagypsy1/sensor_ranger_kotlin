@@ -543,7 +543,7 @@ class MainActivity : AppCompatActivity() {
     private fun formatTime(iso: String): String {
         return try {
             val d = isoParser.parse(iso) ?: return iso
-            java.text.SimpleDateFormat("HH:mm:ss", Locale.US).format(d)
+            java.text.SimpleDateFormat("d MMM HH:mm:ss", Locale.US).format(d)
         } catch (_: Exception) { iso }
     }
 
