@@ -43,7 +43,6 @@ class SensorRangerService : Service() {
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             sensorCollector.latestLocation = result.lastLocation
-            LogManager.log("LOC", "lat=${result.lastLocation?.latitude} lon=${result.lastLocation?.longitude}")
         }
     }
 
