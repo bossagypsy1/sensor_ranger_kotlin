@@ -365,6 +365,7 @@ class MainActivity : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 updateStatus(nowStr, resultStr, prefs.retryCount)
+                refreshLog()
                 binding.btnTestPush.isEnabled = true
                 binding.btnTestPush.text = "Send Test Payload"
             }
@@ -522,6 +523,7 @@ class MainActivity : AppCompatActivity() {
     private fun refreshLog() {
         val text = LogManager.getLog()
         binding.tvLog.text = if (text.isBlank()) "(no log entries yet)" else text
+        binding.scrollLog.post { binding.scrollLog.fullScroll(android.view.View.FOCUS_DOWN) }
     }
 
     private fun checkForCrash() {

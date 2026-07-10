@@ -330,7 +330,8 @@
                             android:paddingStart="10dp"
                             android:paddingEnd="10dp" />
                     </LinearLayout>
-                    <ScrollView
+                    <androidx.core.widget.NestedScrollView
+                        android:id="@+id/scrollLog"
                         android:layout_width="match_parent"
                         android:layout_height="200dp">
                         <TextView
@@ -341,7 +342,7 @@
                             android:textSize="11sp"
                             android:fontFamily="monospace"
                             android:textIsSelectable="true" />
-                    </ScrollView>
+                    </androidx.core.widget.NestedScrollView>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
