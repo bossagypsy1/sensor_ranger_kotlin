@@ -12,7 +12,7 @@ object LogManager {
     private const val LOG_FILE   = "sensor_ranger.log"
     private const val CRASH_FILE = "sensor_ranger_crash.log"
 
-    private val timeFmt = SimpleDateFormat("MM-dd HH:mm:ss", Locale.US)
+    private val timeFmt = SimpleDateFormat("d MMM HH:mm:ss", Locale.US)
     private val dateFmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
 
     private lateinit var appContext: Context
